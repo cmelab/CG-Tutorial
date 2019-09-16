@@ -4,6 +4,7 @@ channels:
   - omnia
   - mosdef 
 dependencies:
+  - pip
   - mbuild 
   - foyer
   - fresnel
@@ -13,3 +14,5 @@ dependencies:
   - freud
   - gsd
   - openbabel
+  - pip:
+    - git+https://github.com/mosdef-hub/mbuild.git

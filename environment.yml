@@ -1,0 +1,15 @@
+name: cg-tutorial
+channels:
+  - conda-forge
+  - omnia
+  - mosdef 
+dependencies:
+  - mbuild 
+  - foyer
+  - fresnel
+  - py3dmol
+  - matplotlib
+  - hoomd
+  - freud
+  - gsd
+  - openbabel

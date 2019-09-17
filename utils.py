@@ -1,6 +1,8 @@
 import re
-from collections import defaultdict
+from copy import deepcopy
+from collections import OrderedDict, defaultdict
 
+from oset import oset as OrderedSet
 import numpy as np
 import mbuild as mb
 import gsd
@@ -10,6 +12,7 @@ import pybel
 import freud
 import parmed as pmd
 from parmed.periodic_table import AtomicNum, element_by_name, Mass, Element
+from mbuild.exceptions import MBuildError
 
 
 def autocorr1D(array):
@@ -1046,3 +1049,48 @@ class CG_Compound(mb.Compound):
         diff = pair[0].pos - pair[1].pos
         img = np.where(diff > self.box[:3]/2,1,0) + np.where(diff < -self.box[:3]/2,-1,0)
         return freud_box.unwrap(pair[1].pos, img)
+
+    def from_mbuild(self, compound):
+        """
+        Converts mb.Compound to CG_Compound
+
+        Parameters
+        ----------
+        compound : mb.Compound to be compied
+
+        Returns
+        -------
+        CG_Compound
+        """
+        clone_dict = {}
+        self.name = deepcopy(compound.name)
+        self.periodicity = deepcopy(compound.periodicity)
+        self._pos = deepcopy(compound._pos)
+        self.port_particle = deepcopy(compound.port_particle)
+        self._check_if_contains_rigid_bodies = deepcopy(
+            compound._check_if_contains_rigid_bodies)
+        self._contains_rigid = deepcopy(compound._contains_rigid)
+        self._rigid_id = deepcopy(compound._rigid_id)
+        self._charge = deepcopy(compound._charge)
+
+        if compound.children is None:
+            self.children = None
+        else:
+            self.children = OrderedSet()
+        # Parent should be None initially.
+        self.parent = None
+        self.labels = OrderedDict()
+        self.referrers = set()
+        self.bond_graph = None
+        for p in compound.particles():
+            new_particle = mb.Particle(name=p.name,pos=p.xyz.flatten())
+            self.add(new_particle)
+            clone_dict[p] = new_particle
+
+        for c1, c2 in compound.bonds():
+            try:
+                self.add_bond((clone_dict[c1], clone_dict[c2]))
+            except KeyError:
+                raise MBuildError(
+                    "Cloning failed. Compound contains bonds to "
+                    "Particles outside of its containment hierarchy.")

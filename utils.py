@@ -1,8 +1,12 @@
 import re
 from copy import deepcopy
+import tempfile
+import os
 from collections import OrderedDict, defaultdict
 
+
 from oset import oset as OrderedSet
+from mbuild.utils.io import run_from_ipython, import_
 import numpy as np
 import mbuild as mb
 import gsd
@@ -1094,3 +1098,105 @@ class CG_Compound(mb.Compound):
                 raise MBuildError(
                     "Cloning failed. Compound contains bonds to "
                     "Particles outside of its containment hierarchy.")
+    def _visualize_py3dmol(self, show_ports=False, color_scheme={}):
+        """
+        Visualize the Compound using py3Dmol.
+        Allows for visualization of a Compound within a Jupyter Notebook.
+        Modified to show atomistic elements (translucent) with larger CG beads.
+
+        Parameters
+        ----------
+        show_ports : bool, optional, default=False
+            Visualize Ports in addition to Particles
+        color_scheme : dict, optional
+            Specify coloring for non-elemental particles
+            keys are strings of the particle names
+            values are strings of the colors
+            i.e. {'_CGBEAD': 'blue'}
+        Returns
+        ------
+        view : py3Dmol.view
+        """
+        py3Dmol = import_("py3Dmol")
+
+        coarse = mb.clone(self)
+        atomistic = mb.clone(self)
+        atomistic.remove_coarse()
+        coarse.remove_atomistic()
+
+        modified_color_scheme = {}
+        for name, color in color_scheme.items():
+            # Py3dmol does some element string conversions,
+            # first character is as-is, rest of the characters are lowercase
+            new_name = name[0] + name[1:].lower()
+            modified_color_scheme[new_name] = color
+            modified_color_scheme[name] = color
+
+        cg_names = []
+        for particle in coarse.particles():
+            if not particle.name:
+                particle.name = "UNK"
+            else:
+                cg_names.append(particle.name)
+
+        for particle in atomistic.particles():
+            if not particle.name:
+                particle.name = "UNK"
+
+        tmp_dir = tempfile.mkdtemp()
+        coarse.save(
+            os.path.join(tmp_dir, "coarse_tmp.mol2"), show_ports=show_ports, overwrite=True
+        )
+        atomistic.save(
+            os.path.join(tmp_dir, "atomistic_tmp.mol2"), show_ports=show_ports, overwrite=True
+        )
+
+        view = py3Dmol.view()
+
+        # atomistic
+        with open(os.path.join(tmp_dir, "atomistic_tmp.mol2"), "r") as f:
+            view.addModel(f.read(), "mol2", keepH=True)
+
+        view.setStyle(
+            {
+                "stick": {"radius": 0.2, "opacity": 0.6, "color": "grey"},
+                "sphere": {
+                    "scale": 0.3,
+                    "opacity": 0.6,
+                    "colorscheme": modified_color_scheme
+                },
+            },
+        )
+
+        # coarse
+        with open(os.path.join(tmp_dir, "coarse_tmp.mol2"), "r") as f:
+            view.addModel(f.read(), "mol2", keepH=True)
+
+        view.setStyle(
+            {"atom": cg_names},
+            {
+                "stick": {"radius": 0.2, "opacity": 1, "color": "grey"},
+                "sphere": {
+                    "scale": 0.7,
+                    "opacity": 1,
+                    "colorscheme": modified_color_scheme
+                },
+            },
+        )
+
+        view.zoomTo()
+
+        return view
+    
+    def remove_coarse(self):
+        """
+        all coarse-grained particles are named starting with '_'
+        remove any particles whose names start with '_'
+        """
+        for i in self.particles():
+            if i.name[0] == "_":
+                self.remove(i)
+        # Remove residual ports
+        for child in self.children:
+            if type(child) == mb.port.Port:
+                self.remove(child)

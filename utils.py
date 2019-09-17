@@ -1054,6 +1054,7 @@ class CG_Compound(mb.Compound):
         img = np.where(diff > self.box[:3]/2,1,0) + np.where(diff < -self.box[:3]/2,-1,0)
         return freud_box.unwrap(pair[1].pos, img)
 
+
     def from_mbuild(self, compound):
         """
         Converts mb.Compound to CG_Compound
@@ -1098,6 +1099,8 @@ class CG_Compound(mb.Compound):
                 raise MBuildError(
                     "Cloning failed. Compound contains bonds to "
                     "Particles outside of its containment hierarchy.")
+
+
     def _visualize_py3dmol(self, show_ports=False, color_scheme={}):
         """
         Visualize the Compound using py3Dmol.
@@ -1137,7 +1140,8 @@ class CG_Compound(mb.Compound):
             if not particle.name:
                 particle.name = "UNK"
             else:
-                cg_names.append(particle.name)
+                if (particle.name != 'Compound') and (particle.name != 'CG_Compound'):
+                    cg_names.append(particle.name)
 
         for particle in atomistic.particles():
             if not particle.name:
@@ -1156,7 +1160,7 @@ class CG_Compound(mb.Compound):
         # atomistic
         with open(os.path.join(tmp_dir, "atomistic_tmp.mol2"), "r") as f:
             view.addModel(f.read(), "mol2", keepH=True)
-            
+
         if cg_names:
             opacity = 0.6
         else:
@@ -1192,7 +1196,7 @@ class CG_Compound(mb.Compound):
         view.zoomTo()
 
         return view
-    
+
     def remove_coarse(self):
         """
         all coarse-grained particles are named starting with '_'

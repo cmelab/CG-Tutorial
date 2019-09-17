@@ -1156,13 +1156,18 @@ class CG_Compound(mb.Compound):
         # atomistic
         with open(os.path.join(tmp_dir, "atomistic_tmp.mol2"), "r") as f:
             view.addModel(f.read(), "mol2", keepH=True)
+            
+        if cg_names:
+            opacity = 0.6
+        else:
+            opacity = 1.0
 
         view.setStyle(
             {
-                "stick": {"radius": 0.2, "opacity": 0.6, "color": "grey"},
+                "stick": {"radius": 0.2, "opacity": opacity, "color": "grey"},
                 "sphere": {
                     "scale": 0.3,
-                    "opacity": 0.6,
+                    "opacity": opacity,
                     "colorscheme": modified_color_scheme
                 },
             },

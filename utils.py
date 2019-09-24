@@ -1,22 +1,20 @@
-import re
-from copy import deepcopy
-import tempfile
 import os
+import re
+import tempfile
 from collections import OrderedDict, defaultdict
+from copy import deepcopy
 
-
-from oset import oset as OrderedSet
-from mbuild.utils.io import run_from_ipython, import_
-import numpy as np
-import mbuild as mb
-import gsd
-import gsd.pygsd
-import gsd.hoomd
-import pybel
 import freud
-import parmed as pmd
-from parmed.periodic_table import AtomicNum, element_by_name, Mass, Element
+import gsd
+import gsd.hoomd
+import gsd.pygsd
+import mbuild as mb
+import numpy as np
+import pybel
 from mbuild.exceptions import MBuildError
+from mbuild.utils.io import import_
+from oset import oset as OrderedSet
+from parmed.periodic_table import Element
 
 
 def autocorr1D(array):
@@ -25,28 +23,28 @@ def autocorr1D(array):
     function and returns normalized array with half the length
     of the input
     """
-    ft = np.fft.rfft(array-np.average(array))
-    acorr = np.fft.irfft(ft*np.conjugate(ft))/(len(array)*np.var(array))
-    return acorr[0:len(acorr)//2]
+    ft = np.fft.rfft(array - np.average(array))
+    acorr = np.fft.irfft(ft * np.conjugate(ft)) / (len(array) * np.var(array))
+    return acorr[0 : len(acorr) // 2]
 
 
 def get_decorr(acorr):
     """
     Returns the decorrelation time of the autocorrelation, a 1D numpy array
     """
-    return np.argmin(acorr>0)
+    return np.argmin(acorr > 0)
 
 
 def error_analysis(data):
     """
     Returns the standard and relative error given a dataset in a 1D numpy array
     """
-    serr = np.std(data)/np.sqrt(len(data))
-    rel_err = np.abs(100* serr/np.average(data))
+    serr = np.std(data) / np.sqrt(len(data))
+    rel_err = np.abs(100 * serr / np.average(data))
     return (serr, rel_err)
 
 
-def get_angle(a,b,c):
+def get_angle(a, b, c):
     """
     Calculates the angle between three points a-b-c
 
@@ -78,7 +76,7 @@ def distance(pos1, pos2):
     -------
     float distance
     """
-    return np.linalg.norm(pos1-pos2)
+    return np.linalg.norm(pos1 - pos2)
 
 
 def v_distance(pos_array, pos2):
@@ -95,7 +93,7 @@ def v_distance(pos_array, pos2):
     -------
     (N,) numpy.ndarray of distances
     """
-    return np.linalg.norm(pos_array-pos2,axis=1)
+    return np.linalg.norm(pos_array - pos2, axis=1)
 
 
 def get_molecules(snapshot):
@@ -113,6 +111,7 @@ def get_molecules(snapshot):
     -------
     list of sets of connected atom indices
     """
+
     def _snap_bond_graph(snapshot):
         """
         Given a snapshot from a trajectory create a graph of the bonds
@@ -171,27 +170,28 @@ def get_compound_rdf(compound, A_name, B_name, rmax=None, rdf=None):
     freud.density.RDF
     """
 
-    A_pos = compound.xyz[compound.get_name_inds(A_name),:]
-    B_pos = compound.xyz[compound.get_name_inds(B_name),:]
+    A_pos = compound.xyz[compound.get_name_inds(A_name), :]
+    B_pos = compound.xyz[compound.get_name_inds(B_name), :]
 
     try:
         compound.box[0]
-    except AttributeError("No box found. Make sure you are using "+
-            "CG_Compound and not mbuild.Compound"):
+    except AttributeError(
+        "No box found. Make sure you are using " + "CG_Compound and not mbuild.Compound"
+    ):
         return
     except TypeError("Box has not been set"):
         return
 
     box = compound.box
 
-    if rmax == None:
+    if rmax is None:
         rmax = min(box) / 4
-    if rdf == None:
-        rdf = freud.density.RDF(rmax=rmax, dr=0.01);
+    if rdf is None:
+        rdf = freud.density.RDF(rmax=rmax, dr=0.01)
 
-    box = freud.box.Box(*compound.box);
+    box = freud.box.Box(*compound.box)
 
-    rdf.accumulate(box, A_pos, B_pos);
+    rdf.accumulate(box, A_pos, B_pos)
     return rdf
 
 
@@ -215,7 +215,7 @@ def map_good_on_bad(good_mol, bad_mol):
     pybel.Molecule
     """
 
-    for i in range(1,good_mol.OBMol.NumAtoms()):
+    for i in range(1, good_mol.OBMol.NumAtoms()):
         good_atom = good_mol.OBMol.GetAtom(i)
         bad_atom = bad_mol.OBMol.GetAtom(i)
         bad_atom.SetType(good_atom.GetType())
@@ -224,7 +224,7 @@ def map_good_on_bad(good_mol, bad_mol):
         else:
             bad_atom.UnsetAromatic()
 
-    for i in range(1,good_mol.OBMol.NumBonds()):
+    for i in range(1, good_mol.OBMol.NumBonds()):
         good_bond = good_mol.OBMol.GetBond(i)
         bad_bond = bad_mol.OBMol.GetBond(i)
         bad_bond.SetBO(good_bond.GetBO())
@@ -286,22 +286,22 @@ def map_file_on_bad(filename, bad_mol):
     for line in lines:
         one, two = line.split()
         if not one.isdigit():
-            atoms.append((one,two))
+            atoms.append((one, two))
         else:
-            bonds.append((one,two))
+            bonds.append((one, two))
 
     for i in range(1, bad_mol.OBMol.NumAtoms()):
         bad_atom = bad_mol.OBMol.GetAtom(i)
-        bad_atom.SetType(atoms[i-1][0])
-        if atoms[i-1][1] == 'True':
+        bad_atom.SetType(atoms[i - 1][0])
+        if atoms[i - 1][1] == "True":
             bad_atom.SetAromatic()
         else:
             bad_atom.UnsetAromatic()
 
     for i in range(1, bad_mol.OBMol.NumBonds()):
         bad_bond = bad_mol.OBMol.GetBond(i)
-        bad_bond.SetBO(int(bonds[i-1][0]))
-        if bonds[i-1][1] == 'True':
+        bad_bond.SetBO(int(bonds[i - 1][0]))
+        if bonds[i - 1][1] == "True":
             bad_bond.SetAromatic()
         else:
             bad_bond.UnsetAromatic()
@@ -334,7 +334,7 @@ def cg_comp(comp, bead_inds):
     N = comp.n_particles
 
     for bead, smarts, bead_name in bead_inds:
-        bead_xyz = comp.xyz[bead,:]
+        bead_xyz = comp.xyz[bead, :]
         avg_xyz = np.mean(bead_xyz, axis=0)
         bead = mb.Particle(name=bead_name, pos=avg_xyz)
         bead.smarts_string = smarts
@@ -373,8 +373,8 @@ def num2str(num):
     e.g. num2str(0) = 'A'
     """
     if num < 26:
-        return chr(num+65)
-    return "".join([chr(num//26+64),chr(num%26+65)])
+        return chr(num + 65)
+    return "".join([chr(num // 26 + 64), chr(num % 26 + 65)])
 
 
 def coarse(mol, bead_smarts, atomistic=False):
@@ -437,77 +437,77 @@ def coarse(mol, bead_smarts, atomistic=False):
 
 
 amber_dict = {
-        "c": "C",
-        "c1": "C",
-        "c2": "C",
-        "c3": "C",
-        "ca": "C",
-        "cp": "C",
-        "cq": "C",
-        "cc": "C",
-        "cd": "C",
-        "ce": "C",
-        "cf": "C",
-        "cg": "C",
-        "ch": "C",
-        "cx": "C",
-        "cy": "C",
-        "cu": "C",
-        "cv": "C",
-        "h1": "H",
-        "h2": "H",
-        "h3": "H",
-        "h4": "H",
-        "h5": "H",
-        "ha": "H",
-        "hc": "H",
-        "hn": "H",
-        "ho": "H",
-        "hp": "H",
-        "hs": "H",
-        "hw": "H",
-        "hx": "H",
-        "f": "F",
-        "cl": "Cl",
-        "br": "Br",
-        "i": "I",
-        "n": "N",
-        "n1": "N",
-        "n2": "N",
-        "n3": "N",
-        "n4": "N",
-        "na": "N",
-        "nb": "N",
-        "nc": "N",
-        "nd": "N",
-        "ne": "N",
-        "nf": "N",
-        "nh": "N",
-        "no": "N",
-        "o": "O",
-        "oh": "O",
-        "os": "O",
-        "ow": "O",
-        "p2": "P",
-        "p3": "P",
-        "p4": "P",
-        "p5": "P",
-        "pb": "P",
-        "pc": "P",
-        "pd": "P",
-        "pe": "P",
-        "pf": "P",
-        "px": "P",
-        "py": "P",
-        "s": "S",
-        "s2": "S",
-        "s4": "S",
-        "s6": "S",
-        "sh": "S",
-        "ss": "S",
-        "sx": "S",
-        "sy": "S"
-        }
+    "c": "C",
+    "c1": "C",
+    "c2": "C",
+    "c3": "C",
+    "ca": "C",
+    "cp": "C",
+    "cq": "C",
+    "cc": "C",
+    "cd": "C",
+    "ce": "C",
+    "cf": "C",
+    "cg": "C",
+    "ch": "C",
+    "cx": "C",
+    "cy": "C",
+    "cu": "C",
+    "cv": "C",
+    "h1": "H",
+    "h2": "H",
+    "h3": "H",
+    "h4": "H",
+    "h5": "H",
+    "ha": "H",
+    "hc": "H",
+    "hn": "H",
+    "ho": "H",
+    "hp": "H",
+    "hs": "H",
+    "hw": "H",
+    "hx": "H",
+    "f": "F",
+    "cl": "Cl",
+    "br": "Br",
+    "i": "I",
+    "n": "N",
+    "n1": "N",
+    "n2": "N",
+    "n3": "N",
+    "n4": "N",
+    "na": "N",
+    "nb": "N",
+    "nc": "N",
+    "nd": "N",
+    "ne": "N",
+    "nf": "N",
+    "nh": "N",
+    "no": "N",
+    "o": "O",
+    "oh": "O",
+    "os": "O",
+    "ow": "O",
+    "p2": "P",
+    "p3": "P",
+    "p4": "P",
+    "p5": "P",
+    "pb": "P",
+    "pc": "P",
+    "pd": "P",
+    "pe": "P",
+    "pf": "P",
+    "px": "P",
+    "py": "P",
+    "s": "S",
+    "s2": "S",
+    "s4": "S",
+    "s6": "S",
+    "sh": "S",
+    "ss": "S",
+    "sx": "S",
+    "sy": "S",
+}
 
 
 # features SMARTS
@@ -552,7 +552,7 @@ class CG_Compound(mb.Compound):
         -------
         CG_Compound
         """
-        f = gsd.pygsd.GSDFile(open(gsdfile, 'rb'))
+        f = gsd.pygsd.GSDFile(open(gsdfile, "rb"))
         t = gsd.hoomd.HOOMDTrajectory(f)
 
         snap = t[frame]
@@ -592,7 +592,6 @@ class CG_Compound(mb.Compound):
         """
         self.remove([i for i in self.particles() if i.name == "H"])
 
-
     def get_molecules(self):
         """
         Translates bond_graph.connected_components to particle indices in compound
@@ -606,7 +605,6 @@ class CG_Compound(mb.Compound):
         for group in self.bond_graph.connected_components():
             molecules.append(set(map(particle_list.index, group)))
         return molecules
-
 
     def get_bonds(self):
         """
@@ -649,19 +647,22 @@ class CG_Compound(mb.Compound):
         # but this seemed more convenient at time of writing
         # pybel atoms are 1-indexed, coordinates in Angstrom
         for atom in pybel_mol.atoms:
-            xyz = np.array(atom.coords)/10
+            xyz = np.array(atom.coords) / 10
             if use_element:
                 try:
                     temp_name = Element[atom.atomicnum]
                 except KeyError:
-                    warn("No element detected for atom at index "
-                            "{} with number {}, type {}".format(
-                                atom.idx, atom.atomicnum, atom.type))
+                    warn(
+                        "No element detected for atom at index "
+                        "{} with number {}, type {}".format(
+                            atom.idx, atom.atomicnum, atom.type
+                        )
+                    )
                     temp_name = atom.type
             else:
                 temp_name = atom.type
             temp = mb.compound.Particle(name=temp_name, pos=xyz)
-            if hasattr(atom, 'residue'): # Is there a safer way to check for res?
+            if hasattr(atom, "residue"):  # Is there a safer way to check for res?
                 if atom.residue.idx not in resindex_to_cmpd:
                     res_cmpd = CG_Compound()
                     resindex_to_cmpd[atom.residue.idx] = res_cmpd
@@ -676,16 +677,23 @@ class CG_Compound(mb.Compound):
         # so we need to look into the OBMol object,
         # using an iterator from the openbabel library
         for bond in openbabel.OBMolBondIter(pybel_mol.OBMol):
-            cmpd.add_bond([cmpd[bond.GetBeginAtomIdx()-1],
-                            cmpd[bond.GetEndAtomIdx()-1]])
+            cmpd.add_bond(
+                [cmpd[bond.GetBeginAtomIdx() - 1], cmpd[bond.GetEndAtomIdx() - 1]]
+            )
 
-        if hasattr(pybel_mol, 'unitcell'):
-            box = mb.box.Box(lengths=[pybel_mol.unitcell.GetA()/10,
-                                pybel_mol.unitcell.GetB()/10,
-                                pybel_mol.unitcell.GetC()/10],
-                        angles=[pybel_mol.unitcell.GetAlpha(),
-                                pybel_mol.unitcell.GetBeta(),
-                                pybel_mol.unitcell.GetGamma()])
+        if hasattr(pybel_mol, "unitcell"):
+            box = mb.box.Box(
+                lengths=[
+                    pybel_mol.unitcell.GetA() / 10,
+                    pybel_mol.unitcell.GetB() / 10,
+                    pybel_mol.unitcell.GetC() / 10,
+                ],
+                angles=[
+                    pybel_mol.unitcell.GetAlpha(),
+                    pybel_mol.unitcell.GetBeta(),
+                    pybel_mol.unitcell.GetGamma(),
+                ],
+            )
             cmpd.periodicity = box.lengths
         else:
             warn("No unitcell detected for pybel.Molecule {}".format(pybel_mol))
@@ -694,7 +702,6 @@ class CG_Compound(mb.Compound):
         cmpd.box = box.maxs
 
         return cmpd
-
 
     def wrap(self):
         """
@@ -708,10 +715,9 @@ class CG_Compound(mb.Compound):
             return
         particles = [part for part in self.particles()]
         # find rows where particles are out of the box
-        for row in np.argwhere(abs(self.xyz)>self.box/2)[:,0]:
+        for row in np.argwhere(abs(self.xyz) > self.box / 2)[:, 0]:
             new_xyz = freud_box.wrap(particles[row].pos)
             particles[row].translate_to(new_xyz)
-
 
     def unwrap(self, d_tolerance=0.22, _count=0):
         """
@@ -748,21 +754,23 @@ class CG_Compound(mb.Compound):
             list of tuples of particle indices
             """
             bad_bonds = [
-                bond for bond in compound.bonds()
-                if distance(bond[0].pos,bond[1].pos) > d_tolerance
+                bond
+                for bond in compound.bonds()
+                if distance(bond[0].pos, bond[1].pos) > d_tolerance
             ]
             maybe_outliers = [
-                (particles.index(bond[0]), particles.index(bond[1])) for bond in bad_bonds
+                (particles.index(bond[0]), particles.index(bond[1]))
+                for bond in bad_bonds
             ]
             return maybe_outliers
 
-
         maybe_outliers = check_bad_bonds(self)
         if not maybe_outliers:
-            print(f"No bonds found longer than {d_tolerance}. Either compound doesn't need" +
-                    " unwrapping or d_tolerance is too small. No changes made.")
+            print(
+                f"No bonds found longer than {d_tolerance}. Either compound doesn't need"
+                + " unwrapping or d_tolerance is too small. No changes made."
+            )
             return
-
 
         def find_outliers(compound):
             """
@@ -781,28 +789,27 @@ class CG_Compound(mb.Compound):
             -------
             set of the particle indices of all outliers in the compound.
             """
+
             def _is_outlier(index):
                 for molecule in molecules:
                     if index in molecule:
                         test_molecule = molecule.copy()
                         test_molecule.remove(index)
-                        a = compound.xyz[list(molecule),:]
-                        b = compound.xyz[list(test_molecule),:]
+                        a = compound.xyz[list(molecule), :]
+                        b = compound.xyz[list(test_molecule), :]
                         center_a = np.mean(a, axis=0)
                         center_b = np.mean(b, axis=0)
-                        avg_dist_a = np.mean(v_distance(a,center_a))
-                        avg_dist_b = np.mean(v_distance(b,center_b))
+                        avg_dist_a = np.mean(v_distance(a, center_a))
+                        avg_dist_b = np.mean(v_distance(b, center_b))
                 return avg_dist_a > avg_dist_b
-
 
             def _d_to_center(index):
                 for molecule in molecules:
                     if index in molecule:
-                        mol_xyz = compound.xyz[list(molecule),:]
+                        mol_xyz = compound.xyz[list(molecule), :]
                         center = np.mean(mol_xyz, axis=0)
-                        dist = distance(particles[index].pos,center)
+                        dist = distance(particles[index].pos, center)
                 return dist
-
 
             outliers = set()
             checked = set()
@@ -816,7 +823,9 @@ class CG_Compound(mb.Compound):
                     elif d_1 > d_0:
                         outliers.add(tup[1])
                     else:
-                        raise RunTimeError(f"Can't determine which is outlier between indices {tup}")
+                        raise RuntimeError(
+                            f"Can't determine which is outlier between indices {tup}"
+                        )
                 elif _is_outlier(tup[0]):
                     outliers.add(tup[0])
                 elif _is_outlier(tup[1]):
@@ -827,8 +836,8 @@ class CG_Compound(mb.Compound):
             starts = outliers.copy()
             while starts:
                 index = starts.pop()
-                outliers.update(bond_dict[index]-checked)
-                starts.update(bond_dict[index]-checked)
+                outliers.update(bond_dict[index] - checked)
+                starts.update(bond_dict[index] - checked)
                 checked.add(index)
             return outliers
 
@@ -845,8 +854,8 @@ class CG_Compound(mb.Compound):
         # find the center of the molecule without outliers
         for mol_ind in outlier_dict:
             molecule = molecules[mol_ind].copy()
-            molecule -= outlier_dict[mol_ind] # not outlier indices
-            mol_xyz = self.xyz[list(molecule),:]
+            molecule -= outlier_dict[mol_ind]  # not outlier indices
+            mol_xyz = self.xyz[list(molecule), :]
             mol_avg = np.mean(mol_xyz, axis=0)
 
             # translate the outlier to its real-space position found using
@@ -855,7 +864,9 @@ class CG_Compound(mb.Compound):
             freud_box = freud.box.Box(*list(self.box))
             for outlier in outlier_dict[mol_ind]:
                 image = mol_avg - particles[outlier].pos
-                img = np.where(image > self.box/2,1,0) + np.where(image < -self.box/2,-1,0)
+                img = np.where(image > self.box / 2, 1, 0) + np.where(
+                    image < -self.box / 2, -1, 0
+                )
                 new_xyz = freud_box.unwrap(particles[outlier].pos, img)
                 particles[outlier].translate_to(new_xyz)
 
@@ -868,7 +879,6 @@ class CG_Compound(mb.Compound):
                 self.unwrap(d_tolerance=d_tolerance, _count=_count)
             else:
                 print("Bad bonds still present and try limit exceeded.")
-
 
     def bond_dict(self):
         """
@@ -883,7 +893,6 @@ class CG_Compound(mb.Compound):
             bond_dict[int(parts.index(bond[1]))].add(int(parts.index(bond[0])))
         return bond_dict
 
-
     def get_name_inds(self, name):
         """
         Find indices of particles in compound where particle.name matches given name
@@ -897,7 +906,6 @@ class CG_Compound(mb.Compound):
         list of particles indices which match name
         """
         return [i for i, part in enumerate(self.particles()) if part.name == name]
-
 
     def tuple_to_names(self, tup):
         """
@@ -918,7 +926,6 @@ class CG_Compound(mb.Compound):
             types.append(particles[index].name)
         return tuple(sorted(types))
 
-
     def find_angles(self):
         """
         Adapted from cme_utils.manip.builder.building_block.find_angles()
@@ -934,21 +941,20 @@ class CG_Compound(mb.Compound):
         for i in range(self.n_particles):
             for n1 in bond_dict[i]:
                 for n2 in bond_dict[n1]:
-                    if n2 !=i:
-                        if n2>i:
-                            angles.append((i,n1,n2))
+                    if n2 != i:
+                        if n2 > i:
+                            angles.append((i, n1, n2))
                         else:
-                            angles.append((n2,n1,i))
+                            angles.append((n2, n1, i))
         angles = sorted(set(angles))
         angle_types = []
         for t in angles:
             angle_types.append(self.tuple_to_names(t))
 
         angle_dict = defaultdict(list)
-        for a,b in zip(angle_types,angles):
+        for a, b in zip(angle_types, angles):
             angle_dict[a].append(b)
         return angle_dict
-
 
     def find_bonds(self):
         """
@@ -963,20 +969,19 @@ class CG_Compound(mb.Compound):
         bond_dict = self.bond_dict()
         for i in range(self.n_particles):
             for n1 in bond_dict[i]:
-                if n1>i:
-                    bonds.append((i,n1))
+                if n1 > i:
+                    bonds.append((i, n1))
                 else:
-                    bonds.append((n1,i))
+                    bonds.append((n1, i))
         bonds = sorted(set(bonds))
         bond_types = []
         for t in bonds:
             bond_types.append(self.tuple_to_names(t))
 
         bond_dict = defaultdict(list)
-        for a,b in zip(bond_types,bonds):
+        for a, b in zip(bond_types, bonds):
             bond_dict[a].append(b)
         return bond_dict
-
 
     def find_pairs(self):
         """
@@ -991,10 +996,9 @@ class CG_Compound(mb.Compound):
         pairs = set()
         for i in particles:
             for j in particles:
-                pair = tuple(sorted([i,j]))
+                pair = tuple(sorted([i, j]))
                 pairs.add(pair)
         return sorted(pairs)
-
 
     def remove_atomistic(self):
         """
@@ -1008,7 +1012,6 @@ class CG_Compound(mb.Compound):
         for child in self.children:
             if type(child) == mb.port.Port:
                 self.remove(child)
-
 
     def is_bad_bond(self, tup):
         """
@@ -1026,13 +1029,12 @@ class CG_Compound(mb.Compound):
         if tup not in self.get_bonds() and tup[::-1] not in self.get_bonds():
             print(f"Bond {tup} not found in compound! Aborting...")
             return
-        pair = [p for i,p in enumerate(self.particles()) if i == tup[0] or i == tup[1]]
-        test = np.where(abs(pair[0].xyz - pair[1].xyz) > self.box/2)[1]
+        pair = [p for i, p in enumerate(self.particles()) if i == tup[0] or i == tup[1]]
+        test = np.where(abs(pair[0].xyz - pair[1].xyz) > self.box / 2)[1]
         if test.size > 0:
             return True
         else:
             return False
-
 
     def unwrap_position(self, tup):
         """
@@ -1049,9 +1051,11 @@ class CG_Compound(mb.Compound):
         (if you want to move the first index, enter it as tup[::-1])
         """
         freud_box = freud.box.Box(*list(self.box))
-        pair = [p for i,p in enumerate(self.particles()) if i == tup[0] or i == tup[1]]
+        pair = [p for i, p in enumerate(self.particles()) if i == tup[0] or i == tup[1]]
         diff = pair[0].pos - pair[1].pos
-        img = np.where(diff > self.box[:3]/2,1,0) + np.where(diff < -self.box[:3]/2,-1,0)
+        img = np.where(diff > self.box[:3] / 2, 1, 0) + np.where(
+            diff < -self.box[:3] / 2, -1, 0
+        )
         return freud_box.unwrap(pair[1].pos, img)
 
     def from_mbuild(self, compound):
@@ -1072,7 +1076,8 @@ class CG_Compound(mb.Compound):
         self._pos = deepcopy(compound._pos)
         self.port_particle = deepcopy(compound.port_particle)
         self._check_if_contains_rigid_bodies = deepcopy(
-            compound._check_if_contains_rigid_bodies)
+            compound._check_if_contains_rigid_bodies
+        )
         self._contains_rigid = deepcopy(compound._contains_rigid)
         self._rigid_id = deepcopy(compound._rigid_id)
         self._charge = deepcopy(compound._charge)
@@ -1087,7 +1092,7 @@ class CG_Compound(mb.Compound):
         self.referrers = set()
         self.bond_graph = None
         for p in compound.particles():
-            new_particle = mb.Particle(name=p.name,pos=p.xyz.flatten())
+            new_particle = mb.Particle(name=p.name, pos=p.xyz.flatten())
             self.add(new_particle)
             clone_dict[p] = new_particle
 
@@ -1097,7 +1102,9 @@ class CG_Compound(mb.Compound):
             except KeyError:
                 raise MBuildError(
                     "Cloning failed. Compound contains bonds to "
-                    "Particles outside of its containment hierarchy.")
+                    "Particles outside of its containment hierarchy."
+                )
+
     def _visualize_py3dmol(self, show_ports=False, color_scheme={}):
         """
         Visualize the Compound using py3Dmol.
@@ -1145,10 +1152,14 @@ class CG_Compound(mb.Compound):
 
         tmp_dir = tempfile.mkdtemp()
         coarse.save(
-            os.path.join(tmp_dir, "coarse_tmp.mol2"), show_ports=show_ports, overwrite=True
+            os.path.join(tmp_dir, "coarse_tmp.mol2"),
+            show_ports=show_ports,
+            overwrite=True,
         )
         atomistic.save(
-            os.path.join(tmp_dir, "atomistic_tmp.mol2"), show_ports=show_ports, overwrite=True
+            os.path.join(tmp_dir, "atomistic_tmp.mol2"),
+            show_ports=show_ports,
+            overwrite=True,
         )
 
         view = py3Dmol.view()
@@ -1156,7 +1167,7 @@ class CG_Compound(mb.Compound):
         # atomistic
         with open(os.path.join(tmp_dir, "atomistic_tmp.mol2"), "r") as f:
             view.addModel(f.read(), "mol2", keepH=True)
-            
+
         if cg_names:
             opacity = 0.6
         else:
@@ -1168,9 +1179,9 @@ class CG_Compound(mb.Compound):
                 "sphere": {
                     "scale": 0.3,
                     "opacity": opacity,
-                    "colorscheme": modified_color_scheme
+                    "colorscheme": modified_color_scheme,
                 },
-            },
+            }
         )
 
         # coarse
@@ -1184,7 +1195,7 @@ class CG_Compound(mb.Compound):
                 "sphere": {
                     "scale": 0.7,
                     "opacity": 1,
-                    "colorscheme": modified_color_scheme
+                    "colorscheme": modified_color_scheme,
                 },
             },
         )
@@ -1192,7 +1203,7 @@ class CG_Compound(mb.Compound):
         view.zoomTo()
 
         return view
-    
+
     def remove_coarse(self):
         """
         all coarse-grained particles are named starting with '_'

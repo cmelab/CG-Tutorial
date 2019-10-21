@@ -10,5 +10,5 @@ dependencies:
   - freud
   - gsd
   - pip:
-    - openbabel
+    - git+https://github.com/openbabel/openbabel.git
     - git+https://github.com/mosdef-hub/mbuild.git

@@ -6,7 +6,6 @@ channels:
 dependencies:
   - pip
   - mbuild 
-  - foyer
   - py3dmol
   - freud
   - gsd

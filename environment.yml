@@ -9,6 +9,6 @@ dependencies:
   - py3dmol
   - freud
   - gsd
+  - openbabel
   - pip:
-    - git+https://github.com/openbabel/openbabel.git
     - git+https://github.com/mosdef-hub/mbuild.git

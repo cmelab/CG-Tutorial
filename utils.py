@@ -10,7 +10,7 @@ import gsd.hoomd
 import gsd.pygsd
 import mbuild as mb
 import numpy as np
-import pybel
+from openbabel import pybel
 from mbuild.exceptions import MBuildError
 from mbuild.utils.io import import_
 from oset import oset as OrderedSet

@@ -5,7 +5,6 @@ channels:
   - mosdef 
 dependencies:
   - pip
-  - pybel
   - mbuild 
   - foyer
   - py3dmol
@@ -14,3 +13,4 @@ dependencies:
   - openbabel
   - pip:
     - git+https://github.com/mosdef-hub/mbuild.git
+    - pybel

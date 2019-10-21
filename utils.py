@@ -1148,59 +1148,66 @@ class CG_Compound(mb.Compound):
                 if (particle.name != 'Compound') and (particle.name != 'CG_Compound'):
                     cg_names.append(particle.name)
 
+        atom_names = []
         for particle in atomistic.particles():
             if not particle.name:
                 particle.name = "UNK"
+            else:
+                if (particle.name != 'Compound') and (particle.name != 'CG_Compound'):
+                    atom_names.append(particle.name)
 
         tmp_dir = tempfile.mkdtemp()
-        coarse.save(
-            os.path.join(tmp_dir, "coarse_tmp.mol2"),
-            show_ports=show_ports,
-            overwrite=True,
-        )
-        atomistic.save(
-            os.path.join(tmp_dir, "atomistic_tmp.mol2"),
-            show_ports=show_ports,
-            overwrite=True,
-        )
 
         view = py3Dmol.view()
 
-        # atomistic
-        with open(os.path.join(tmp_dir, "atomistic_tmp.mol2"), "r") as f:
-            view.addModel(f.read(), "mol2", keepH=True)
+        if atom_names:
+            atomistic.save(
+                os.path.join(tmp_dir, "atomistic_tmp.mol2"),
+                show_ports=show_ports,
+                overwrite=True,
+            )
 
-        if cg_names:
-            opacity = 0.6
-        else:
-            opacity = 1.0
+            # atomistic
+            with open(os.path.join(tmp_dir, "atomistic_tmp.mol2"), "r") as f:
+                view.addModel(f.read(), "mol2", keepH=True)
 
-        view.setStyle(
-            {
-                "stick": {"radius": 0.2, "opacity": opacity, "color": "grey"},
-                "sphere": {
-                    "scale": 0.3,
-                    "opacity": opacity,
-                    "colorscheme": modified_color_scheme,
-                },
-            }
-        )
+            if cg_names:
+                opacity = 0.6
+            else:
+                opacity = 1.0
+
+            view.setStyle(
+                {
+                    "stick": {"radius": 0.2, "opacity": opacity, "color": "grey"},
+                    "sphere": {
+                        "scale": 0.3,
+                        "opacity": opacity,
+                        "colorscheme": modified_color_scheme,
+                    },
+                }
+            )
 
         # coarse
-        with open(os.path.join(tmp_dir, "coarse_tmp.mol2"), "r") as f:
-            view.addModel(f.read(), "mol2", keepH=True)
+        if cg_names:
+            coarse.save(
+                os.path.join(tmp_dir, "coarse_tmp.mol2"),
+                show_ports=show_ports,
+                overwrite=True,
+            )
+            with open(os.path.join(tmp_dir, "coarse_tmp.mol2"), "r") as f:
+                view.addModel(f.read(), "mol2", keepH=True)
 
-        view.setStyle(
-            {"atom": cg_names},
-            {
-                "stick": {"radius": 0.2, "opacity": 1, "color": "grey"},
-                "sphere": {
-                    "scale": 0.7,
-                    "opacity": 1,
-                    "colorscheme": modified_color_scheme,
+            view.setStyle(
+                {"atom": cg_names},
+                {
+                    "stick": {"radius": 0.2, "opacity": 1, "color": "grey"},
+                    "sphere": {
+                        "scale": 0.7,
+                        "opacity": 1,
+                        "colorscheme": modified_color_scheme,
+                    },
                 },
-            },
-        )
+            )
 
         view.zoomTo()
 

@@ -562,9 +562,10 @@ features_dict = {
 
 class CG_Compound(mb.Compound):
     def __init__(self):
-        super().__init__()
+        super()
         self.box = None
 
+    # TODO make this a classmethod?
     def from_gsd(gsdfile, frame=-1, coords_only=False, scale=1.0):
         """
         Given a trajectory gsd file creates an mbuild.Compound.
@@ -1090,7 +1091,8 @@ class CG_Compound(mb.Compound):
         return freud_box.unwrap(pair[1].pos, img)
 
 
-    def from_mbuild(self, compound):
+    @classmethod
+    def from_mbuild(cls, compound):
         """
         Converts mb.Compound to CG_Compound
 
@@ -1102,40 +1104,44 @@ class CG_Compound(mb.Compound):
         -------
         CG_Compound
         """
+
+        comp = CG_Compound()
+
         clone_dict = {}
-        self.name = deepcopy(compound.name)
-        self.periodicity = deepcopy(compound.periodicity)
-        self._pos = deepcopy(compound._pos)
-        self.port_particle = deepcopy(compound.port_particle)
-        self._check_if_contains_rigid_bodies = deepcopy(
+        comp.name = deepcopy(compound.name)
+        comp.periodicity = deepcopy(compound.periodicity)
+        comp._pos = deepcopy(compound._pos)
+        comp.port_particle = deepcopy(compound.port_particle)
+        comp._check_if_contains_rigid_bodies = deepcopy(
             compound._check_if_contains_rigid_bodies
         )
-        self._contains_rigid = deepcopy(compound._contains_rigid)
-        self._rigid_id = deepcopy(compound._rigid_id)
-        self._charge = deepcopy(compound._charge)
+        comp._contains_rigid = deepcopy(compound._contains_rigid)
+        comp._rigid_id = deepcopy(compound._rigid_id)
+        comp._charge = deepcopy(compound._charge)
 
         if compound.children is None:
-            self.children = None
+            comp.children = None
         else:
-            self.children = OrderedSet()
+            comp.children = OrderedSet()
         # Parent should be None initially.
-        self.parent = None
-        self.labels = OrderedDict()
-        self.referrers = set()
-        self.bond_graph = None
+        comp.parent = None
+        comp.labels = OrderedDict()
+        comp.referrers = set()
+        comp.bond_graph = None
         for p in compound.particles():
             new_particle = mb.Particle(name=p.name, pos=p.xyz.flatten())
-            self.add(new_particle)
+            comp.add(new_particle)
             clone_dict[p] = new_particle
 
         for c1, c2 in compound.bonds():
             try:
-                self.add_bond((clone_dict[c1], clone_dict[c2]))
+                comp.add_bond((clone_dict[c1], clone_dict[c2]))
             except KeyError:
                 raise MBuildError(
                     "Cloning failed. Compound contains bonds to "
                     "Particles outside of its containment hierarchy."
                 )
+        return comp
 
     def _visualize_py3dmol(self, show_ports=False, color_scheme={}):
         """

@@ -17,6 +17,37 @@ from oset import oset as OrderedSet
 from parmed.periodic_table import Element
 
 
+def bin_distribution(vals, nbins, start=None, stop=None):
+    """
+    Calculates a distribution given an array of data
+
+    Parameters
+    ----------
+    vals : np.ndarry (N,), values over which to calculate the distribution
+    start : float, value to start bins (default min(bonds_dict[bond]))
+    stop : float, value to stop bins (default max(bonds_dict[bond]))
+    step : float, step size between bins (default (stop-start)/30)
+
+    Returns
+    -------
+    np.ndarray (nbins,2), where the first column is the mean value of the bin and
+    the second column is number of values which fell into that bin
+    """
+    if start == None:
+        start = min(vals)
+    if stop == None:
+        stop = max(vals)
+    step = (stop-start)/nbins
+
+    bins = [i for i in np.arange(start, stop, step)]
+    dist = np.empty([len(bins)-1,2])
+    for i, length in enumerate(bins[1:]):
+        in_bin = [b for b in vals if b > bins[i] and b < bins[i+1]]
+        dist[i,1] = len(in_bin)
+        dist[i,0] = np.mean((bins[i],bins[i+1]))
+    return dist
+
+
 def autocorr1D(array):
     """
     Takes in a linear numpy array, performs autocorrelation

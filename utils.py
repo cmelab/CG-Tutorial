@@ -562,11 +562,11 @@ features_dict = {
 
 class CG_Compound(mb.Compound):
     def __init__(self):
-        super()
+        super().__init__()
         self.box = None
 
-    # TODO make this a classmethod?
-    def from_gsd(gsdfile, frame=-1, coords_only=False, scale=1.0):
+    @classmethod
+    def from_gsd(cls, gsdfile, frame=-1, coords_only=False, scale=1.0):
         """
         Given a trajectory gsd file creates an mbuild.Compound.
         If there are multiple separate molecules, they are returned
@@ -592,7 +592,7 @@ class CG_Compound(mb.Compound):
         n_atoms = snap.particles.N
 
         # Add particles
-        comp = CG_Compound()
+        comp = cls()
         comp.box = snap.configuration.box[:3] * scale
         for i in range(n_atoms):
             name = snap.particles.types[snap.particles.typeid[i]]
@@ -1094,7 +1094,8 @@ class CG_Compound(mb.Compound):
     @classmethod
     def from_mbuild(cls, compound):
         """
-        Converts mb.Compound to CG_Compound
+        Instantiates a CG_Compound and follows mb.Compound.deep_copy
+        to copy particles and bonds to CG_Compound
 
         Parameters
         ----------
@@ -1105,7 +1106,7 @@ class CG_Compound(mb.Compound):
         CG_Compound
         """
 
-        comp = CG_Compound()
+        comp = cls()
 
         clone_dict = {}
         comp.name = deepcopy(compound.name)
@@ -1142,6 +1143,7 @@ class CG_Compound(mb.Compound):
                     "Particles outside of its containment hierarchy."
                 )
         return comp
+
 
     def _visualize_py3dmol(self, show_ports=False, color_scheme={}):
         """

@@ -250,19 +250,13 @@ def map_good_on_bad(good_mol, bad_mol):
         good_atom = good_mol.OBMol.GetAtom(i)
         bad_atom = bad_mol.OBMol.GetAtom(i)
         bad_atom.SetType(good_atom.GetType())
-        if good_atom.IsAromatic():
-            bad_atom.SetAromatic()
-        else:
-            bad_atom.UnsetAromatic()
+        bad_atom.SetAromatic(good_atom.IsAromatic())
 
     for i in range(1, good_mol.OBMol.NumBonds()):
         good_bond = good_mol.OBMol.GetBond(i)
         bad_bond = bad_mol.OBMol.GetBond(i)
-        bad_bond.SetBO(good_bond.GetBO())
-        if good_bond.IsAromatic():
-            bad_bond.SetAromatic()
-        else:
-            bad_bond.UnsetAromatic()
+        bad_bond.SetBondOrder(good_bond.GetBondOrder())
+        bad_bond.SetAromatic(good_bond.IsAromatic())
 
     return bad_mol
 

@@ -12,7 +12,7 @@ import mbuild as mb
 import numpy as np
 from openbabel import pybel
 from mbuild.exceptions import MBuildError
-from mbuild.utils.io import import_
+from mbuild.utils.io import import_, run_from_ipython
 from oset import oset as OrderedSet
 from parmed.periodic_table import Element
 
@@ -362,19 +362,19 @@ def cg_comp(comp, bead_inds):
     given an mbuild compound and bead_inds(list of tup)
     return coarse-grained mbuild compound
     """
-    N = comp.n_particles
+    cg_compound = CG_Compound()
+    cg_compound.box = comp.box
 
     for bead, smarts, bead_name in bead_inds:
         bead_xyz = comp.xyz[bead, :]
         avg_xyz = np.mean(bead_xyz, axis=0)
         bead = mb.Particle(name=bead_name, pos=avg_xyz)
         bead.smarts_string = smarts
-        comp.add(bead)
+        cg_compound.add(bead)
+    return cg_compound
 
-    return comp, N
 
-
-def cg_bonds(comp, beads, N):
+def cg_bonds(comp, cg_compound, beads):
     """
     add bonds based on bonding in aa compound
     return bonded mbuild compound
@@ -391,11 +391,11 @@ def cg_bonds(comp, beads, N):
     for pair in bead_bonds:
         bond_pair = [
             particle
-            for i, particle in enumerate(comp.particles())
-            if i == pair[0] + N or i == pair[1] + N
+            for i, particle in enumerate(cg_compound.particles())
+            if i == pair[0] or i == pair[1]
         ]
-        comp.add_bond(bond_pair)
-    return comp
+        cg_compound.add_bond(bond_pair)
+    return cg_compound
 
 
 def num2str(num):
@@ -408,7 +408,7 @@ def num2str(num):
     return "".join([chr(num // 26 + 64), chr(num % 26 + 65)])
 
 
-def coarse(mol, bead_smarts, atomistic=False):
+def coarse(mol, bead_smarts):
     """
     Creates a coarse-grained (CG) compound given a starting structure and
     smart strings for desired beads.
@@ -417,8 +417,6 @@ def coarse(mol, bead_smarts, atomistic=False):
     ----------
     mol : pybel.Molecule
     bead_smarts : list of str, list of desired SMARTS strings of CG beads
-    atomistic : bool, if True, the coarse-grain compound will be overlaid
-    with the atomistic one (default=False)
 
     Returns
     -------
@@ -458,13 +456,12 @@ def coarse(mol, bead_smarts, atomistic=False):
         )  # TODO make this more informative
 
     comp = CG_Compound.from_pybel(mol)
-    comp, N = cg_comp(comp, bead_inds)
-    comp = cg_bonds(comp, bead_inds, N)
+    cg_compound = cg_comp(comp, bead_inds)
+    cg_compound = cg_bonds(comp, cg_compound, bead_inds)
 
-    if not atomistic:
-        comp.remove_atomistic()
+    cg_compound.atomistic = comp
 
-    return comp
+    return cg_compound
 
 
 amber_dict = {
@@ -564,6 +561,7 @@ class CG_Compound(mb.Compound):
     def __init__(self):
         super().__init__()
         self.box = None
+        self.atomistic = None
 
     @classmethod
     def from_gsd(cls, gsdfile, frame=-1, coords_only=False, scale=1.0):
@@ -1144,8 +1142,42 @@ class CG_Compound(mb.Compound):
                 )
         return comp
 
+    def visualize(self, show_ports=False, backend='py3dmol',
+            color_scheme={}, show_atomistic=False): # pragma: no cover
+        """
+        Visualize the Compound using py3dmol (default) or nglview.
+        Allows for visualization of a Compound within a Jupyter Notebook.
+        Parameters
+        ----------
+        show_ports : bool, optional, default=False
+            Visualize Ports in addition to Particles
+        backend : str, optional, default='py3dmol'
+            Specify the backend package to visualize compounds
+            Currently supported: py3dmol, nglview
+        color_scheme : dict, optional
+            Specify coloring for non-elemental particles
+            keys are strings of the particle names
+            values are strings of the colors
+            i.e. {'_CGBEAD': 'blue'}
+        NOTE!: Only py3dmol will work with CG_Compounds
+        """
+        viz_pkg = {'nglview': self._visualize_nglview,
+                'py3dmol': self._visualize_py3dmol}
+        if run_from_ipython():
+            if backend.lower() in viz_pkg:
+                return viz_pkg[backend.lower()](show_ports=show_ports,
+                        color_scheme=color_scheme, show_atomistic=show_atomistic)
+            else:
+                raise RuntimeError("Unsupported visualization " +
+                        "backend ({}). ".format(backend) +
+                        "Currently supported backends include nglview and py3dmol")
 
-    def _visualize_py3dmol(self, show_ports=False, color_scheme={}):
+        else:
+            raise RuntimeError('Visualization is only supported in Jupyter '
+                               'Notebooks.')
+
+
+    def _visualize_py3dmol(self, show_ports=False, color_scheme={}, show_atomistic=False):
         """
         Visualize the Compound using py3Dmol.
         Allows for visualization of a Compound within a Jupyter Notebook.
@@ -1160,17 +1192,26 @@ class CG_Compound(mb.Compound):
             keys are strings of the particle names
             values are strings of the colors
             i.e. {'_CGBEAD': 'blue'}
+        show_atomistic : show the atomistic structure stored in CG_Compound.atomistic
+
         Returns
         ------
         view : py3Dmol.view
         """
         py3Dmol = import_("py3Dmol")
 
-        coarse = mb.clone(self)
-        atomistic = mb.clone(self)
-        atomistic.remove_coarse()
-        coarse.remove_atomistic()
+        atom_names = []
 
+        if self.atomistic is not None and show_atomistic:
+            atomistic = mb.clone(self.atomistic)
+            for particle in atomistic.particles():
+                if not particle.name:
+                    particle.name = "UNK"
+                else:
+                    if (particle.name != 'Compound') and (particle.name != 'CG_Compound'):
+                        atom_names.append(particle.name)
+
+        coarse = mb.clone(self)
         modified_color_scheme = {}
         for name, color in color_scheme.items():
             # Py3dmol does some element string conversions,
@@ -1187,13 +1228,6 @@ class CG_Compound(mb.Compound):
                 if (particle.name != 'Compound') and (particle.name != 'CG_Compound'):
                     cg_names.append(particle.name)
 
-        atom_names = []
-        for particle in atomistic.particles():
-            if not particle.name:
-                particle.name = "UNK"
-            else:
-                if (particle.name != 'Compound') and (particle.name != 'CG_Compound'):
-                    atom_names.append(particle.name)
 
         tmp_dir = tempfile.mkdtemp()
 
@@ -1236,12 +1270,17 @@ class CG_Compound(mb.Compound):
             with open(os.path.join(tmp_dir, "coarse_tmp.mol2"), "r") as f:
                 view.addModel(f.read(), "mol2", keepH=True)
 
+            if self.atomistic is None:
+                scale = 0.3
+            else:
+                scale = 0.7
+
             view.setStyle(
                 {"atom": cg_names},
                 {
                     "stick": {"radius": 0.2, "opacity": 1, "color": "grey"},
                     "sphere": {
-                        "scale": 0.7,
+                        "scale": scale,
                         "opacity": 1,
                         "colorscheme": modified_color_scheme,
                     },

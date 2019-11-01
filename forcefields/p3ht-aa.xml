@@ -20,46 +20,97 @@
   <Type name="C10" class="C10" element="C" mass="12.0107" def="" desc="aromatic carbon" doi="10.1021/jp404629a"/>
  </AtomTypes>
  <HarmonicBondForce>
-  <Bond class1="CA" class2="CA" length="1.43" k="392.0"/>
-  <Bond class1="CT" class2="CT" length="1.53" k="268.0"/>
-  <Bond class1="CA" class2="CT" length="1.51" k="300.0"/>
-  <Bond class1="CA" class2="S" length="1.71" k="392.0"/>
+  <Bond class1="C9"  class2="H7"  length="1.0822"  k="370.63"/>
+  <Bond class1="C1"  class2="S1"  length="1.73373" k="291.25"/>
+  <Bond class1="C10" class2="S1"  length="1.73373" k="291.25"/>
+  <Bond class1="C1"  class2="C2"  length="1.37368" k="514.27"/>
+  <Bond class1="C9"  class2="C10" length="1.37368" k="514.27"/>
+  <Bond class1="C2"  class2="C3"  length="1.50884" k="299.82"/>
+  <Bond class1="C2"  class2="C9"  length="1.43277" k="453.1"/>
+  <Bond class1="C3"  class2="H1"  length="1.09827" k="327.545"/>
+  <Bond class1="C3"  class2="C4"  length="1.54158" k="268"/>
+  <Bond class1="C4"  class2="C5"  length="1.54158" k="268"/>
+  <Bond class1="C5"  class2="C6"  length="1.54158" k="268"/>
+  <Bond class1="C6"  class2="C7"  length="1.54158" k="268"/>
+  <Bond class1="C7"  class2="C8"  length="1.54158" k="268"/>
+  <Bond class1="C4"  class2="H2"  length="1.09527" k="340"/>
+  <Bond class1="C5"  class2="H3"  length="1.09527" k="340"/>
+  <Bond class1="C6"  class2="H4"  length="1.09527" k="340"/>
+  <Bond class1="C7"  class2="H5"  length="1.09527" k="340"/>
+  <Bond class1="C8"  class2="H6"  length="1.09527" k="340"/>
+  <Bond class1="C1"  class2="C10" length="1.45"    k="392.29"/>
  </HarmonicBondForce>
  <HarmonicAngleForce>
-  <Angle class1="CA" class2="CA" class3="CA" angle="2.27" k="54.7"/>
-  <Angle class1="CA" class2="CA" class3="S" angle="2.09" k="41.7"/>
-  <Angle class1="CA" class2="S" class3="CA" angle="1.62" k="86.0"/>
-  <Angle class1="CA" class2="CT" class3="CT" angle="2.16" k="70.0"/>
-  <Angle class1="CA" class2="CA" class3="CT" angle="2.15" k="70.0"/>
-  <Angle class1="CT" class2="CT" class3="CT" angle="1.97" k="37.5"/>
+  <Angle class1="C1" class2="S1" class3="C10" angle="92.774" k="86.36"/>
+  <Angle class1="S1" class2="C1" class3="C2" angle="110.292" k="86.36"/>
+  <Angle class1="S1" class2="C10" class3="C9" angle="110.292" k="86.36"/>
+  <Angle class1="C1" class2="C2" class3="C9" angle="113.322" k="39.582"/>
+  <Angle class1="C2" class2="C9" class3="C10" angle="113.322" k="39.582"/>
+  <Angle class1="C2" class2="C9" class3="H7" angle="123.7" k="35.263"/>
+  <Angle class1="C1" class2="C10" class3="C9" angle="130.14" k="54.694"/>
+  <Angle class1="C2" class2="C1" class3="C10" angle="130.14" k="54.694"/>
+  <Angle class1="H7" class2="C9" class3="C10" angle="122.979" k="35.263"/>
+  <Angle class1="S1" class2="C1" class3="C10" angle="119.569" k="41.74"/>
+  <Angle class1="S1" class2="C10" class3="C1" angle="119.569" k="41.74"/>
+  <Angle class1="C3" class2="C2" class3="C9" angle="123.378" k="166.545"/>
+  <Angle class1="C1" class2="C2" class3="C3" angle="124.554" k="166.32"/>
+  <Angle class1="C2" class2="C3" class3="C4" angle="115.44" k="120.14"/>
+  <Angle class1="C2" class2="C3" class3="H1" angle="109.189" k="74.06"/>
+  <Angle class1="C3" class2="C4" class3="C5" angle="112.7" k="58.35"/>
+  <Angle class1="C4" class2="C5" class3="C6" angle="112.7" k="58.35"/>
+  <Angle class1="C5" class2="C6" class3="C7" angle="112.7" k="58.35"/>
+  <Angle class1="C6" class2="C7" class3="C8" angle="112.7" k="58.35"/>
+  <Angle class1="H1" class2="C3" class3="C4" angle="110.7" k="37.5"/>
+  <Angle class1="C3" class2="C4" class3="H2" angle="110.7" k="37.5"/>
+  <Angle class1="H2" class2="C4" class3="C5" angle="110.7" k="37.5"/>
+  <Angle class1="C4" class2="C5" class3="H3" angle="110.7" k="37.5"/>
+  <Angle class1="H3" class2="C5" class3="C6" angle="110.7" k="37.5"/>
+  <Angle class1="C5" class2="C6" class3="H4" angle="110.7" k="37.5"/>
+  <Angle class1="H4" class2="C6" class3="C7" angle="110.7" k="37.5"/>
+  <Angle class1="C6" class2="C7" class3="H5" angle="110.7" k="37.5"/>
+  <Angle class1="H5" class2="C7" class3="C8" angle="110.7" k="37.5"/>
+  <Angle class1="C7" class2="C8" class3="H6" angle="110.7" k="37.5"/>
+  <Angle class1="H1" class2="C3" class3="H1" angle="107.8" k="33"/>
+  <Angle class1="H2" class2="C4" class3="H2" angle="107.8" k="33"/>
+  <Angle class1="H3" class2="C5" class3="H3" angle="107.8" k="33"/>
+  <Angle class1="H4" class2="C6" class3="H4" angle="107.8" k="33"/>
+  <Angle class1="H5" class2="C7" class3="H5" angle="107.8" k="33"/>
+  <Angle class1="H6" class2="C8" class3="H6" angle="107.8" k="33"/>
  </HarmonicAngleForce>
  <RBTorsionForce>
-  <Proper class1="S" class2="CA" class3="CA" class4="S" c0="2.9533" c1="0.1571" c2="-4.2326" c3="0.39979" c4="1.8855" c5="0.0"/>
-  <Proper class1="CA" class2="CA" class3="CA" class4="S" c0="2.9533" c1="-0.1571" c2="-4.2326" c3="-0.39979" c4="1.8855" c5="0.0"/>
-  <Proper class1="CA" class2="CA" class3="CT" class4="CT" c0="0.3175" c1="1.127" c2="14.143" c3="-22.297" c4="6.7188" c5="0.0"/>
-  <Proper class1="CA" class2="CT" class3="CT" class4="CT" c0="2.4469" c1="-6.3946" c2="10.747" c3="30.695" c4="11.139" c5="0.0"/>
-  <Proper class1="CT" class2="CT" class3="CT" class4="CT" c0="1.8922" c1="-3.4904" c2="1.4665" c3="7.1418" c4="0.2859" c5="0.0"/>
-  <Proper class1="CA" class2="CA" class3="CA" class4="CT" c0="0.0" c1="0.0" c2="0.0" c3="0.0" c4="0.0" c5="0.0"/>
-  <Proper class1="CA" class2="CA" class3="CA" class4="CA" c0="0.0" c1="0.0" c2="0.0" c3="0.0" c4="0.0" c5="0.0"/>
+  <Proper class1="S1" class2="C10" class3="C1" class4="S1" c0="2.9533" c1="0.1571" c2="-4.2326" c3="0.3979" c4="1.8855" c5="0.0"/>
+  <Proper class1="C9" class2="C2" class3="C3" class4="C4" c0="0.3175" c1="1.127" c2="14.143" c3="-22.297" c4="6.7188" c5="0.0"/>
+  <Proper class1="C2" class2="C1" class3="S1" class4="C10" c0="126.32" c1="-109.81" c2="-19.738" c3="-25.303" c4="28.53" c5="0.0"/>
+  <Proper class1="C1" class2="S1" class3="C10" class4="C9" c0="126.32" c1="-109.81" c2="-19.738" c3="-25.303" c4="28.53" c5="0.0"/>
+  <Proper class1="C1" class2="C2" class3="C9" class4="C10" c0="126.32" c1="-109.81" c2="-19.738" c3="-25.303" c4="28.53" c5="0.0"/>
+  <Proper class1="C2" class2="C9" class3="C10" class4="S1" c0="126.32" c1="-109.81" c2="-19.738" c3="-25.303" c4="28.53" c5="0.0"/>
+  <Proper class1="C2" class2="C3" class3="C4" class4="C5" c0="2.4469" c1="-6.3946" c2="10.747" c3="30.695" c4="11.139" c5="0.0"/>
+  <Proper class1="C3" class2="C4" class3="C5" class4="C6" c0="1.9475" c1="-3.7121" c2="1.388" c3="8.6305" c4="1.6008" c5="0.0"/>
+  <Proper class1="C4" class2="C5" class3="C6" class4="C7" c0="1.8922" c1="-3.4904" c2="1.4665" c3="7.1418" c4="0.2859" c5="0.0"/>
+  <Proper class1="C5" class2="C6" class3="C7" class4="C8" c0="1.9788" c1="-3.8476" c2="1.1614" c3="7.419" c4="0.4146" c5="0.0"/>
+  <Proper class1="S1" class2="C10" class3="C1" class4="C2" c0="2.9533" c1="-0.1571" c2="-4.2326" c3="-0.3979" c4="1.8855" c5="0.0"/>
+  <Proper class1="C3" class2="C2" class3="C9" class4="C10" c0="117.65" c1="238.26" c2="205.96" c3="112.81" c4="27.467" c5="0.0"/>
+  <Proper class1="C2" class2="C9" class3="C10" class4="C1" c0="75.595" c1="116" c2="42.679" c3="-1.528" c4="-3.8137" c5="0.0"/>
+  <Proper class1="C10" class2="C1" class3="S1" class4="C10" c0="158.7" c1="418.34" c2="521.33" c3="376.73" c4="115.12" c5="0.0"/>
  </RBTorsionForce>
  <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
-  <Atom type="C1" charge="-0.0441" sigma="3.436" epsilon="0.11"/>
-  <Atom type="S1" charge="-0.2171" sigma="3.436" epsilon="0.11"/>
-  <Atom type="C2" charge="0" sigma="3.436" epsilon="0.11"/>
-  <Atom type="C3" charge="0" sigma="3.436" epsilon="0.11"/>
-  <Atom type="H1" charge="0" sigma="3.436" epsilon="0.11"/>
-  <Atom type="C4" charge="0" sigma="3.436" epsilon="0.11"/>
-  <Atom type="H2" charge="0" sigma="3.905" epsilon="0.17"/>
-  <Atom type="C5" charge="0" sigma="3.436" epsilon="0.32"/>
-  <Atom type="H3" charge="0" sigma="3.905" epsilon="0.17"/>
-  <Atom type="C6" charge="0" sigma="3.436" epsilon="0.32"/>
-  <Atom type="H4" charge="0" sigma="3.905" epsilon="0.17"/>
-  <Atom type="C7" charge="0" sigma="3.436" epsilon="0.32"/>
-  <Atom type="H5" charge="0" sigma="3.905" epsilon="0.17"/>
-  <Atom type="C8" charge="0" sigma="3.436" epsilon="0.32"/>
-  <Atom type="H6" charge="0" sigma="3.905" epsilon="0.17"/>
-  <Atom type="C9" charge="0" sigma="3.436" epsilon="0.32"/>
-  <Atom type="H7" charge="0" sigma="3.905" epsilon="0.17"/>
-  <Atom type="C10" charge="0" sigma="3.436" epsilon="0.32"/>
+  <Atom type="C1"  charge="-0.0441" sigma="3.550" epsilon="0.070"/>
+  <Atom type="S1"  charge="-0.2171" sigma="3.550" epsilon="0.250"/>
+  <Atom type="C2"  charge="0.0318"  sigma="3.550" epsilon="0.070"/>
+  <Atom type="C3"  charge="0.1278"  sigma="3.500" epsilon="0.066"/>
+  <Atom type="H1"  charge="0.0039"  sigma="2.500" epsilon="0.030"/>
+  <Atom type="C4"  charge="-0.0926" sigma="3.500" epsilon="0.066"/>
+  <Atom type="H2"  charge="0.0290"  sigma="2.500" epsilon="0.030"/>
+  <Atom type="C5"  charge="0.0189"  sigma="3.500" epsilon="0.066"/>
+  <Atom type="H3"  charge="0.0036"  sigma="2.500" epsilon="0.030"/>
+  <Atom type="C6"  charge="0.0289"  sigma="3.500" epsilon="0.066"/>
+  <Atom type="H4"  charge="0.0069"  sigma="2.500" epsilon="0.030"/>
+  <Atom type="C7"  charge="-0.1396" sigma="3.500" epsilon="0.066"/>
+  <Atom type="H5"  charge="0.0536"  sigma="2.500" epsilon="0.030"/>
+  <Atom type="C8"  charge="-0.0670" sigma="3.500" epsilon="0.066"/>
+  <Atom type="H6"  charge="0.0200"  sigma="2.500" epsilon="0.030"/>
+  <Atom type="C9"  charge="-0.3128" sigma="3.550" epsilon="0.070"/>
+  <Atom type="H7"  charge="0.2356"  sigma="2.420" epsilon="0.030"/>
+  <Atom type="C10" charge="0.1762"  sigma="3.550" epsilon="0.070"/>
  </NonbondedForce>
 </ForceField>

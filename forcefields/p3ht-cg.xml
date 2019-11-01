@@ -1,0 +1,26 @@
+<ForceField>
+ <AtomTypes>
+  <!--I can't find the mass...--!>
+  <Type name="B" class="B" element="_B" mass="" def="" desc="backbone" doi="10.1021/ma400724e"/>
+  <Type name="S" class="S" element="_S" mass="" def="" desc="sidechain" doi="10.1021/ma400724e"/>
+ </AtomTypes>
+ <HarmonicBondForce>
+  <Bond class1="B" class2="B" length="1.4" k="50"/>
+  <Bond class1="B" class2="S" length="1.4" k="50"/>
+  <Bond class1="S" class2="S" length="1.4" k="50"/>
+ </HarmonicBondForce>
+ <HarmonicAngleForce>
+  <Angle class1="B" class2="S" class3="S" angle="3.14" k="6"/>
+  <Angle class1="B" class2="B" class3="B" angle="3.14" k="30"/>
+  <!--The following angle is not taken from Jankowski paper--!>
+  <Angle class1="B" class2="B" class3="S" angle="1.57" k="2"/>
+ </HarmonicAngleForce>
+ <PeriodicTorsionForce>
+  <!--The following dihedral is not taken from Jankowski paper--!>
+  <Proper class1="S" class2="B" class3="B" class4="S" periodicity1="1" phase1="1" k1="1"/>
+ </PeriodicTorsionForce>
+ <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
+  <Atom type="B" charge="0" sigma="1.4" epsilon="2.0"/>
+  <Atom type="S" charge="0" sigma="1.4" epsilon="0.1"/>
+ </NonbondedForce>
+</ForceField>

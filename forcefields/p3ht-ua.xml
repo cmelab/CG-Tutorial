@@ -1,0 +1,35 @@
+<ForceField>
+ <AtomTypes>
+  <Type name="CA" class="CA" element="C" mass="13.0" def="" desc="aromatic carbon" doi="10.3390/polym10121305"/>
+  <Type name="CT" class="CT" element="C" mass="15.0" def="" desc="aliphatic carbon" doi="10.3390/polym10121305"/>
+  <Type name="S" class="S" element="S" mass="32.0" def="" desc="thiophene sulfur" doi="10.3390/polym10121305"/>
+ </AtomTypes>
+ <HarmonicBondForce>
+  <Bond class1="CA" class2="CA" length="1.43" k="392.0"/>
+  <Bond class1="CT" class2="CT" length="1.53" k="268.0"/>
+  <Bond class1="CA" class2="CT" length="1.51" k="300.0"/>
+  <Bond class1="CA" class2="S" length="1.71" k="392.0"/>
+ </HarmonicBondForce>
+ <HarmonicAngleForce>
+  <Angle class1="CA" class2="CA" class3="CA" angle="2.27" k="54.7"/>
+  <Angle class1="CA" class2="CA" class3="S" angle="2.09" k="41.7"/>
+  <Angle class1="CA" class2="S" class3="CA" angle="1.62" k="86.0"/>
+  <Angle class1="CA" class2="CT" class3="CT" angle="2.16" k="70.0"/>
+  <Angle class1="CA" class2="CA" class3="CT" angle="2.15" k="70.0"/>
+  <Angle class1="CT" class2="CT" class3="CT" angle="1.97" k="37.5"/>
+ </HarmonicAngleForce>
+ <RBTorsionForce>
+  <Proper class1="S" class2="CA" class3="CA" class4="S" c0="2.9533" c1="0.1571" c2="-4.2326" c3="0.39979" c4="1.8855" c5="0.0"/>
+  <Proper class1="CA" class2="CA" class3="CA" class4="S" c0="2.9533" c1="-0.1571" c2="-4.2326" c3="-0.39979" c4="1.8855" c5="0.0"/>
+  <Proper class1="CA" class2="CA" class3="CT" class4="CT" c0="0.3175" c1="1.127" c2="14.143" c3="-22.297" c4="6.7188" c5="0.0"/>
+  <Proper class1="CA" class2="CT" class3="CT" class4="CT" c0="2.4469" c1="-6.3946" c2="10.747" c3="30.695" c4="11.139" c5="0.0"/>
+  <Proper class1="CT" class2="CT" class3="CT" class4="CT" c0="1.8922" c1="-3.4904" c2="1.4665" c3="7.1418" c4="0.2859" c5="0.0"/>
+  <Proper class1="CA" class2="CA" class3="CA" class4="CT" c0="0.0" c1="0.0" c2="0.0" c3="0.0" c4="0.0" c5="0.0"/>
+  <Proper class1="CA" class2="CA" class3="CA" class4="CA" c0="0.0" c1="0.0" c2="0.0" c3="0.0" c4="0.0" c5="0.0"/>
+ </RBTorsionForce>
+ <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
+  <Atom type="CA" charge="0" sigma="3.436" epsilon="0.11"/>
+  <Atom type="CT" charge="0" sigma="3.905" epsilon="0.17"/>
+  <Atom type="S" charge="0" sigma="3.436" epsilon="0.32"/>
+ </NonbondedForce>
+</ForceField>

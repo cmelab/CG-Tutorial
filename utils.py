@@ -17,6 +17,21 @@ from oset import oset as OrderedSet
 from parmed.periodic_table import Element
 
 
+def mb_to_freud_box(box):
+    """
+    Convert an mbuild box object to a freud box object
+
+    Parameters
+    ----------
+    box : mbuild.box.Box()
+
+    Returns
+    -------
+    freud.box.Box()
+    """
+    box_list = list(box.maxs) + list(box.angles)
+    return freud.box.Box(*box_list)
+
 def bin_distribution(vals, nbins, start=None, stop=None):
     """
     Calculates a distribution given an array of data
@@ -205,7 +220,7 @@ def get_compound_rdf(compound, A_name, B_name, rmax=None, rdf=None):
     B_pos = compound.xyz[compound.get_name_inds(B_name), :]
 
     try:
-        compound.box[0]
+        compound.box.maxs[0]
     except AttributeError(
         "No box found. Make sure you are using " + "CG_Compound and not mbuild.Compound"
     ):
@@ -213,14 +228,14 @@ def get_compound_rdf(compound, A_name, B_name, rmax=None, rdf=None):
     except TypeError("Box has not been set"):
         return
 
-    box = compound.box
+    box = compound.box.maxs
 
     if rmax is None:
         rmax = min(box) / 4
     if rdf is None:
         rdf = freud.density.RDF(rmax=rmax, dr=0.01)
 
-    box = freud.box.Box(*compound.box)
+    box = mb_to_freud_box(box)
 
     rdf.accumulate(box, A_pos, B_pos)
     return rdf
@@ -587,7 +602,7 @@ class CG_Compound(mb.Compound):
 
         # Add particles
         comp = cls()
-        comp.box = snap.configuration.box[:3] * scale
+        comp.box = mb.box.Box(lengths=snap.configuration.box[:3] * scale)
         for i in range(n_atoms):
             name = snap.particles.types[snap.particles.typeid[i]]
             xyz = snap.particles.position[i] * scale
@@ -725,7 +740,7 @@ class CG_Compound(mb.Compound):
             warn("No unitcell detected for pybel.Molecule {}".format(pybel_mol))
             box = None
 
-        cmpd.box = box.maxs
+        cmpd.box = box
 
         return cmpd
 
@@ -735,13 +750,13 @@ class CG_Compound(mb.Compound):
         them to within the box.
         """
         try:
-            freud_box = freud.box.Box(*list(self.box))
+            freud_box = mb_to_freud_box(self.box)
         except TypeError:
             print("Can't wrap because CG_Compound.box values aren't assigned.")
             return
         particles = [part for part in self.particles()]
         # find rows where particles are out of the box
-        for row in np.argwhere(abs(self.xyz) > self.box / 2)[:, 0]:
+        for row in np.argwhere(abs(self.xyz) > self.box.maxs / 2)[:, 0]:
             new_xyz = freud_box.wrap(particles[row].pos)
             particles[row].translate_to(new_xyz)
 
@@ -887,11 +902,11 @@ class CG_Compound(mb.Compound):
             # translate the outlier to its real-space position found using
             # freud.box.unwrap. the direction is determined using the
             # difference between the particle position and the molecule center
-            freud_box = freud.box.Box(*list(self.box))
+            freud_box = mb_to_freud_box(self.box)
             for outlier in outlier_dict[mol_ind]:
                 image = mol_avg - particles[outlier].pos
-                img = np.where(image > self.box / 2, 1, 0) + np.where(
-                    image < -self.box / 2, -1, 0
+                img = np.where(image > self.box.maxs/ 2, 1, 0) + np.where(
+                    image < -self.box.maxs / 2, -1, 0
                 )
                 new_xyz = freud_box.unwrap(particles[outlier].pos, img)
                 particles[outlier].translate_to(new_xyz)
@@ -1042,7 +1057,7 @@ class CG_Compound(mb.Compound):
     def is_bad_bond(self, tup):
         """
         Determines whether a bond spans the periodic boundary based on a distance
-        cutoff of the self.box/2
+        cutoff of the self.box.maxs/2
 
         Parameters
         ----------
@@ -1056,7 +1071,7 @@ class CG_Compound(mb.Compound):
             print(f"Bond {tup} not found in compound! Aborting...")
             return
         pair = [p for i, p in enumerate(self.particles()) if i == tup[0] or i == tup[1]]
-        test = np.where(abs(pair[0].xyz - pair[1].xyz) > self.box / 2)[1]
+        test = np.where(abs(pair[0].xyz - pair[1].xyz) > self.box.maxs / 2)[1]
         if test.size > 0:
             return True
         else:
@@ -1076,11 +1091,11 @@ class CG_Compound(mb.Compound):
         np.ndarray(3,), unwrapped coordinates for index in tup[1]
         (if you want to move the first index, enter it as tup[::-1])
         """
-        freud_box = freud.box.Box(*list(self.box))
+        freud_box = mb_to_freud_box(self.box)
         pair = [p for i, p in enumerate(self.particles()) if i == tup[0] or i == tup[1]]
         diff = pair[0].pos - pair[1].pos
-        img = np.where(diff > self.box[:3] / 2, 1, 0) + np.where(
-            diff < -self.box[:3] / 2, -1, 0
+        img = np.where(diff > self.box.maxs / 2, 1, 0) + np.where(
+            diff < -self.box.maxs / 2, -1, 0
         )
         return freud_box.unwrap(pair[1].pos, img)
 

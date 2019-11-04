@@ -402,7 +402,7 @@ def num2str(num):
     return "".join([chr(num // 26 + 64), chr(num % 26 + 65)])
 
 
-def coarse(mol, bead_smarts):
+def coarse(mol, bead_list):
     """
     Creates a coarse-grained (CG) compound given a starting structure and
     smart strings for desired beads.
@@ -410,20 +410,22 @@ def coarse(mol, bead_smarts):
     Parameters
     ----------
     mol : pybel.Molecule
-    bead_smarts : list of str, list of desired SMARTS strings of CG beads
+    bead_list : list of tuples of strings, desired bead name
+    followed by SMARTS string of that bead
 
     Returns
     -------
     CG_Compound
     """
     matches = []
-    for i, smart_str in enumerate(bead_smarts):
+    for i, item in enumerate(bead_list):
+        bead_name, smart_str = item
         smarts = pybel.Smarts(smart_str)
         if not smarts.findall(mol):
             print(f"{smart_str} not found in compound!")
         for group in smarts.findall(mol):
             group = tuple(i - 1 for i in group)
-            matches.append((group, smart_str, f"_{num2str(i)}"))
+            matches.append((group, smart_str, bead_name))
 
     seen = set()
     bead_inds = []

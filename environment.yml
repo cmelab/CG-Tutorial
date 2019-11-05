@@ -12,4 +12,4 @@ dependencies:
   - openbabel
   - foyer
   - pip:
-    - git+https://github.com/mosdef-hub/mbuild/pull/622.git
+    - git+https://github.com/jennyfothergill/mbuild@pr622 

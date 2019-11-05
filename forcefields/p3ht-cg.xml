@@ -5,9 +5,10 @@
   <Type name="S" class="S" element="_S" mass="1.0" def="_S" desc="sidechain" doi="10.1021/ma400724e"/>
  </AtomTypes>
  <HarmonicBondForce>
-  <Bond class1="B" class2="B" length="1.4" k="50"/>
-  <Bond class1="B" class2="S" length="1.4" k="50"/>
-  <Bond class1="S" class2="S" length="1.4" k="50"/>
+  <!--Lengths have been scaled by 0.2-->
+  <Bond class1="B" class2="B" length="0.28" k="50"/>
+  <Bond class1="B" class2="S" length="0.28" k="50"/>
+  <Bond class1="S" class2="S" length="0.28" k="50"/>
  </HarmonicBondForce>
  <HarmonicAngleForce>
   <Angle class1="B" class2="S" class3="S" angle="3.14" k="6"/>
@@ -20,7 +21,8 @@
   <Proper class1="S" class2="B" class3="B" class4="S" periodicity1="1" phase1="1" k1="1"/>
  </PeriodicTorsionForce>
  <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
-  <Atom type="B" charge="0" sigma="1.4" epsilon="2.0"/>
-  <Atom type="S" charge="0" sigma="1.4" epsilon="0.1"/>
+  <!--Lengths have been scaled by 0.2-->
+  <Atom type="B" charge="0" sigma="0.28" epsilon="2.0"/>
+  <Atom type="S" charge="0" sigma="0.28" epsilon="0.1"/>
  </NonbondedForce>
 </ForceField>

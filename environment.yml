@@ -5,6 +5,7 @@ channels:
   - mosdef 
 dependencies:
   - pip
+  - hoomd
   - mbuild 
   - py3dmol
   - freud

@@ -10,5 +10,6 @@ dependencies:
   - freud
   - gsd
   - openbabel
+  - foyer
   - pip:
-    - git+https://github.com/mosdef-hub/mbuild.git
+    - git+https://github.com/mosdef-hub/mbuild/pull/622.git

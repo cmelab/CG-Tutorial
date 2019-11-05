@@ -29,7 +29,17 @@ def mb_to_freud_box(box):
     -------
     freud.box.Box()
     """
-    box_list = list(box.maxs) + list(box.angles)
+    Lx = box.lengths[0]
+    Ly = box.lengths[1]
+    Lz = box.lengths[2]
+    alpha = box.angles[0]
+    beta = box.angles[1]
+    gamma = box.angles[2]
+
+    xy = np.cos(np.radians(gamma))
+    yz = np.cos(np.radians(alpha))
+    xz = np.cos(np.radians(beta))
+    box_list = list(box.maxs) + [xy, yz, xz]
     return freud.box.Box(*box_list)
 
 def bin_distribution(vals, nbins, start=None, stop=None):
@@ -905,7 +915,7 @@ class CG_Compound(mb.Compound):
             freud_box = mb_to_freud_box(self.box)
             for outlier in outlier_dict[mol_ind]:
                 image = mol_avg - particles[outlier].pos
-                img = np.where(image > self.box.maxs/ 2, 1, 0) + np.where(
+                img = np.where(image > self.box.maxs / 2, 1, 0) + np.where(
                     image < -self.box.maxs / 2, -1, 0
                 )
                 new_xyz = freud_box.unwrap(particles[outlier].pos, img)

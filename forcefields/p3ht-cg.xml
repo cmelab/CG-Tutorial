@@ -1,11 +1,10 @@
 <ForceField>
  <AtomTypes>
-  <!--I couldn't find the mass, so these are just placeholders-->
   <Type name="B" class="B" element="_B" mass="1.0" def="_B" desc="backbone" doi="10.1021/ma400724e"/>
   <Type name="S" class="S" element="_S" mass="1.0" def="_S" desc="sidechain" doi="10.1021/ma400724e"/>
  </AtomTypes>
  <HarmonicBondForce>
-  <!--Lengths have been scaled by 0.2-->
+  <!--Lengths have been scaled by 0.2; length unit is nm-->
   <Bond class1="B" class2="B" length="0.28" k="50"/>
   <Bond class1="B" class2="S" length="0.28" k="50"/>
   <Bond class1="S" class2="S" length="0.28" k="50"/>
@@ -23,6 +22,6 @@
  <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
   <!--Lengths have been scaled by 0.2-->
   <Atom type="B" charge="0" sigma="0.28" epsilon="2.0"/>
-  <Atom type="S" charge="0" sigma="0.28" epsilon="0.1"/>
+  <Atom type="S" charge="0" sigma="0.28" epsilon="1.0"/>
  </NonbondedForce>
 </ForceField>

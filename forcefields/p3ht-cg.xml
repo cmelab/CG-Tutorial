@@ -1,27 +1,27 @@
 <ForceField>
  <AtomTypes>
-  <Type name="B" class="B" element="_B" mass="1.0" def="_B" desc="backbone" doi="10.1021/ma400724e"/>
-  <Type name="S" class="S" element="_S" mass="1.0" def="_S" desc="sidechain" doi="10.1021/ma400724e"/>
+  <Type name="_B" class="_B" element="_B" mass="1.0" def="_B" desc="backbone" doi="10.1021/ma400724e"/>
+  <Type name="_S" class="_S" element="_S" mass="1.0" def="_S" desc="sidechain" doi="10.1021/ma400724e"/>
  </AtomTypes>
  <HarmonicBondForce>
   <!--Lengths have been scaled by 0.2; length unit is nm-->
-  <Bond class1="B" class2="B" length="0.28" k="50"/>
-  <Bond class1="B" class2="S" length="0.28" k="50"/>
-  <Bond class1="S" class2="S" length="0.28" k="50"/>
+  <Bond class1="_B" class2="_B" length="0.28" k="50"/>
+  <Bond class1="_B" class2="_S" length="0.28" k="50"/>
+  <Bond class1="_S" class2="_S" length="0.28" k="50"/>
  </HarmonicBondForce>
  <HarmonicAngleForce>
-  <Angle class1="B" class2="S" class3="S" angle="3.14" k="6"/>
-  <Angle class1="B" class2="B" class3="B" angle="3.14" k="30"/>
+  <Angle class1="_B" class2="_S" class3="_S" angle="3.14" k="6"/>
+  <Angle class1="_B" class2="_B" class3="_B" angle="3.14" k="30"/>
   <!--The following angle is not taken from Jankowski et. al-->
-  <Angle class1="B" class2="B" class3="S" angle="1.57" k="2"/>
+  <Angle class1="_B" class2="_B" class3="_S" angle="1.57" k="2"/>
  </HarmonicAngleForce>
  <PeriodicTorsionForce>
   <!--The following dihedral is not taken from Jankowski et. al-->
-  <Proper class1="S" class2="B" class3="B" class4="S" periodicity1="1" phase1="1" k1="1"/>
+  <Proper class1="_S" class2="_B" class3="_B" class4="_S" periodicity1="1" phase1="1" k1="1"/>
  </PeriodicTorsionForce>
  <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
   <!--Lengths have been scaled by 0.2-->
-  <Atom type="B" charge="0" sigma="0.28" epsilon="2.0"/>
-  <Atom type="S" charge="0" sigma="0.28" epsilon="1.0"/>
+  <Atom type="_B" charge="0" sigma="0.28" epsilon="2.0"/>
+  <Atom type="_S" charge="0" sigma="0.28" epsilon="1.0"/>
  </NonbondedForce>
 </ForceField>

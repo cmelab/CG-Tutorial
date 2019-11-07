@@ -42,6 +42,7 @@ def mb_to_freud_box(box):
     box_list = list(box.maxs) + [xy, yz, xz]
     return freud.box.Box(*box_list)
 
+
 def bin_distribution(vals, nbins, start=None, stop=None):
     """
     Calculates a distribution given an array of data
@@ -207,7 +208,64 @@ def get_molecules(snapshot):
     return result
 
 
-def get_compound_rdf(compound, A_name, B_name, rmax=None, rdf=None):
+def gsd_rdf(gsdfile, A_name, B_name, start=0, stop=None, rmax=None, bins=50):
+    """
+    This function calculates the radial distribution function given
+    a gsd file and the names of the particles. By default it will calculate
+    the rdf for the entire the trajectory.
+
+    Parameters
+    ----------
+    gsdfile : str, filename of the gsd trajectory
+    A_name, B_name : str, name(s) of particles between which to calculate the rdf
+        (found in gsd.hoomd.Snapshot.particles.types)
+    start : int, which frame to start accumulating the rdf (default 0)
+        (negative numbers index from the end)
+    stop : int, which frame to stop accumulating the rdf (default None)
+        If none is given, the function will default to the last frame.
+    rmax : float, maximum radius to consider. (default None)
+        If none is given, it'll be the minimum box length / 4
+    rdf : freud.density.RDF, if provided, this function will accumulate an average rdf,
+        otherwise it will provide the rdf only for the given compound. (default None)
+    bins : int, number of bins to use when calculating the distribution.
+
+    Returns
+    -------
+    freud.density.RDF
+    """
+    f = gsd.pygsd.GSDFile(open(gsdfile, "rb"))
+    t = gsd.hoomd.HOOMDTrajectory(f)
+    snap = t[0]
+    if rmax is None:
+        rmax = max(snap.configuration.box[:3]) / 2 - 1
+
+    rdf = freud.density.RDF(bins, rmax)
+
+    if stop is None:
+        stop = len(t) - 1
+    if start < 0:
+        start += len(t) - 1
+    for frame in range(start, stop):
+        snap = t[frame]
+        box = freud.box.Box(*snap.configuration.box)
+        A_pos = snap.particles.position[
+                snap.particles.typeid == snap.particles.types.index(A_name)
+                ]
+        pos = A_pos
+        if A_name != B_name:
+            B_pos = snap.particles.position[
+                    snap.particles.typeid == snap.particles.types.index(B_name)
+                    ]
+            pos = np.concatenate((A_pos, B_pos))
+
+        n_query = freud.locality.AABBQuery.from_system((
+            box, pos
+        ))
+        rdf.compute(n_query, reset=False)
+    return rdf
+
+
+def get_compound_rdf(compound, A_name, B_name, rmax=None, bins=50, rdf=None):
     """
     This function calculates the radial distribution function given
     an mbuild compound, the names of the particles, and the dimensions of the box.
@@ -227,10 +285,12 @@ def get_compound_rdf(compound, A_name, B_name, rmax=None, rdf=None):
     """
 
     A_pos = compound.xyz[compound.get_name_inds(A_name), :]
-    B_pos = compound.xyz[compound.get_name_inds(B_name), :]
-
+    pos = A_pos
+    if A_name != B_name:
+        B_pos = compound.xyz[compound.get_name_inds(B_name), :]
+        pos = np.concatenate((A_pos, B_pos))
     try:
-        compound.box.maxs[0]
+        compound.box.lengths[0]
     except AttributeError(
         "No box found. Make sure you are using " + "CG_Compound and not mbuild.Compound"
     ):
@@ -238,16 +298,15 @@ def get_compound_rdf(compound, A_name, B_name, rmax=None, rdf=None):
     except TypeError("Box has not been set"):
         return
 
-    box = compound.box.maxs
-
     if rmax is None:
-        rmax = min(box) / 4
+        rmax = min(compound.box.lengths) / 4
     if rdf is None:
-        rdf = freud.density.RDF(rmax=rmax, dr=0.01)
+        rdf = freud.density.RDF(bins, rmax)
 
-    box = mb_to_freud_box(box)
+    box = mb_to_freud_box(compound.box)
+    n_query = freud.locality.AABBQuery.from_system((box, pos))
 
-    rdf.accumulate(box, A_pos, B_pos)
+    rdf.compute(n_query, reset=False)
     return rdf
 
 
@@ -587,7 +646,7 @@ class CG_Compound(mb.Compound):
     @classmethod
     def from_gsd(cls, gsdfile, frame=-1, coords_only=False, scale=1.0):
         """
-        Given a trajectory gsd file creates an mbuild.Compound.
+        Given a trajectory gsd file creates an CG_Compound.
         If there are multiple separate molecules, they are returned
         as one compound.
 
@@ -1164,7 +1223,7 @@ class CG_Compound(mb.Compound):
         return comp
 
     def visualize(self, show_ports=False, backend='py3dmol',
-            color_scheme={}, show_atomistic=False): # pragma: no cover
+            color_scheme={}, show_atomistic=False, scale=1.0): # pragma: no cover
         """
         Visualize the Compound using py3dmol (default) or nglview.
         Allows for visualization of a Compound within a Jupyter Notebook.
@@ -1187,7 +1246,7 @@ class CG_Compound(mb.Compound):
         if run_from_ipython():
             if backend.lower() in viz_pkg:
                 return viz_pkg[backend.lower()](show_ports=show_ports,
-                        color_scheme=color_scheme, show_atomistic=show_atomistic)
+                        color_scheme=color_scheme, show_atomistic=show_atomistic, scale=scale)
             else:
                 raise RuntimeError("Unsupported visualization " +
                         "backend ({}). ".format(backend) +
@@ -1198,7 +1257,11 @@ class CG_Compound(mb.Compound):
                                'Notebooks.')
 
 
-    def _visualize_py3dmol(self, show_ports=False, color_scheme={}, show_atomistic=False):
+    def _visualize_py3dmol(self,
+            show_ports=False,
+            color_scheme={},
+            show_atomistic=False,
+            scale=1.0):
         """
         Visualize the Compound using py3Dmol.
         Allows for visualization of a Compound within a Jupyter Notebook.
@@ -1272,9 +1335,9 @@ class CG_Compound(mb.Compound):
 
             view.setStyle(
                 {
-                    "stick": {"radius": 0.2, "opacity": opacity, "color": "grey"},
+                    "stick": {"radius": 0.2 * scale, "opacity": opacity, "color": "grey"},
                     "sphere": {
-                        "scale": 0.3,
+                        "scale": 0.3 * scale,
                         "opacity": opacity,
                         "colorscheme": modified_color_scheme,
                     },
@@ -1292,14 +1355,14 @@ class CG_Compound(mb.Compound):
                 view.addModel(f.read(), "mol2", keepH=True)
 
             if self.atomistic is None:
-                scale = 0.3
+                scale = 0.3 * scale
             else:
-                scale = 0.7
+                scale = 0.7 * scale
 
             view.setStyle(
                 {"atom": cg_names},
                 {
-                    "stick": {"radius": 0.2, "opacity": 1, "color": "grey"},
+                    "stick": {"radius": 0.2 * scale, "opacity": 1, "color": "grey"},
                     "sphere": {
                         "scale": scale,
                         "opacity": 1,

@@ -14,3 +14,4 @@ dependencies:
   - foyer
   - pip:
     - git+https://github.com/jennyfothergill/mbuild@pr622 
+    - git+https://github.com/nextmovesoftware/deepsmiles.git

@@ -12,3 +12,5 @@ dependencies:
   - gsd
   - openbabel
   - foyer
+  - pip:
+    - git+https://github.com/mosdef-hub/mbuild.git

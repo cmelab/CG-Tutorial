@@ -12,5 +12,3 @@ dependencies:
   - gsd
   - openbabel
   - foyer
-  - pip:
-    - git+https://github.com/jennyfothergill/mbuild@pr622 
